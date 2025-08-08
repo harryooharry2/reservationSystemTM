@@ -61,7 +61,7 @@
         "description": "Set up Supabase project with database schema for users, cafe_tables, and reservations tables including proper relationships and constraints.",
         "details": "1. Create new Supabase project:\n   - Sign up/login to Supabase dashboard\n   - Create new project with appropriate name and region\n   - Note project URL and anon/service role keys\n\n2. Design and implement database schema:\n   - Create 'users' table with fields: id (UUID, primary key), email (unique), name, phone, created_at\n   - Create 'cafe_tables' table with fields: id (serial, primary key), table_number (unique), capacity (integer), status (enum: available/occupied/reserved), created_at\n   - Create 'reservations' table with fields: id (serial, primary key), user_id (foreign key to users), table_id (foreign key to cafe_tables), reservation_date, start_time, end_time, status (enum: pending/confirmed/cancelled), created_at\n\n3. Set up proper relationships and constraints:\n   - Add foreign key constraints between tables\n   - Create indexes on frequently queried fields (user_id, table_id, reservation_date)\n   - Set up RLS (Row Level Security) policies for each table\n   - Configure proper cascade behaviors for deletions\n\n4. Configure authentication:\n   - Enable email/password authentication\n   - Set up email templates for confirmation and password reset\n   - Configure JWT settings and session duration\n\n5. Set up environment configuration:\n   - Document connection strings and API keys\n   - Create environment variable template for local development",
         "testStrategy": "1. Verify Supabase project is accessible and database is created\n2. Test table creation by running SELECT queries on each table\n3. Verify foreign key constraints by attempting to insert invalid references\n4. Test RLS policies by creating test users and attempting unauthorized data access\n5. Verify authentication flow by creating test user accounts and logging in\n6. Test table relationships by creating sample data and verifying joins work correctly\n7. Validate indexes are created properly using EXPLAIN ANALYZE on common queries\n8. Test cascade behaviors by deleting parent records and verifying child records are handled appropriately\n9. Verify all environment variables and connection strings work in development environment",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           1
         ],
@@ -73,7 +73,7 @@
             "description": "Set up new Supabase project with proper naming, region selection, and initial dashboard configuration",
             "dependencies": [],
             "details": "Create new Supabase project through dashboard, select appropriate region for performance, configure project settings, and collect project URL and API keys for environment setup",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -84,7 +84,7 @@
               "2.1"
             ],
             "details": "Design schema following database normalization principles, implement users table (UUID primary key, email unique constraint), cafe_tables table (serial primary key, capacity validation), and reservations table with proper field types and validation rules",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -95,7 +95,7 @@
               "2.2"
             ],
             "details": "Set up foreign key relationships between reservations-users and reservations-cafe_tables, configure appropriate CASCADE/RESTRICT rules, create indexes for performance on foreign key columns",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -106,7 +106,7 @@
               "2.3"
             ],
             "details": "Enable RLS on all tables, create policies for user data access (users can only see their own reservations), staff/admin policies for broader access, configure Supabase Auth settings for email/password authentication",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -117,7 +117,7 @@
               "2.4"
             ],
             "details": "Configure environment variables for Supabase URL and keys, test database connections, verify RLS policies work correctly with test data, document schema and connection setup for development team",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -704,7 +704,7 @@
     ],
     "metadata": {
       "created": "2025-08-07T13:33:33.369Z",
-      "updated": "2025-08-08T08:30:38.140Z",
+      "updated": "2025-08-08T11:27:10.363Z",
       "description": "Tasks for master context"
     }
   }

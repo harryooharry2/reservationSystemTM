@@ -1,32 +1,23 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
-import rateLimit from 'express-rate-limit';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const compression = require('compression');
+const morgan = require('morgan');
+require('dotenv').config();
 
-// Load environment variables
-dotenv.config();
+// Import routes
+const tablesRouter = require('./routes/tables');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-}));
+app.use(helmet());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:4321',
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:4321', 'http://localhost:3000'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -34,9 +25,11 @@ app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  }
 });
 app.use('/api/', limiter);
 
@@ -50,66 +43,55 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint for Render
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0'
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({
-    message: 'Cafe Table Web Reservation System API',
+    message: 'Cafe Reservation System API',
     version: '1.0.0',
-    status: 'running',
     endpoints: {
       health: '/api/health',
-      auth: '/api/auth/*',
-      reservations: '/api/reservations/*',
-      tables: '/api/tables/*'
+      tables: '/api/tables',
+      tables_available: '/api/tables/available'
     }
   });
 });
 
-// API routes (to be implemented)
-app.get('/api/reservations', (req, res) => {
-  res.json({ message: 'Reservations endpoint - to be implemented' });
-});
-
-app.get('/api/tables', (req, res) => {
-  res.json({ message: 'Tables endpoint - to be implemented' });
-});
+// API routes
+app.use('/api/tables', tablesRouter);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('/api/*', (req, res) => {
   res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.originalUrl} not found`,
-    timestamp: new Date().toISOString()
+    error: 'Endpoint not found',
+    path: req.originalUrl,
+    method: req.method
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Unhandled error:', err);
   res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'Something went wrong' 
-      : err.message,
-    timestamp: new Date().toISOString()
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📋 API docs: http://localhost:${PORT}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
@@ -124,4 +106,4 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-export default app; 
+module.exports = app; 
