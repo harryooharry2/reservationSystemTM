@@ -1,0 +1,73 @@
+{
+  "name": "cafe-reservation-frontend",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Frontend for Cafe Table Web Reservation System",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --ext .js,.ts,.astro",
+    "lint:fix": "eslint . --ext .js,.ts,.astro --fix",
+    "format": "prettier --write .",
+    "type-check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/react": "^3.0.0",
+    "@astrojs/tailwind": "^5.0.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "astro": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.3.0",
+    "@astrojs/eslint-plugin": "^0.29.0",
+    "@astrojs/prettier-plugin": "^0.13.0",
+    "@playwright/test": "^1.40.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-astro": "^0.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.0.0",
+    "prettier-plugin-astro": "^0.13.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cafe-reservation-system.git",
+    "directory": "frontend"
+  },
+  "keywords": [
+    "astro",
+    "react",
+    "tailwindcss",
+    "supabase",
+    "reservation",
+    "cafe"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/cafe-reservation-system/issues"
+  },
+  "homepage": "https://github.com/your-username/cafe-reservation-system#readme"
+} 

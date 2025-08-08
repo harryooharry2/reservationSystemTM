@@ -1,0 +1,83 @@
+{
+  "name": "cafe-reservation-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Cafe Table Web Reservation System",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "npm install",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest --config vitest.integration.config.js",
+    "lint": "eslint src/ --ext .js,.ts",
+    "lint:fix": "eslint src/ --ext .js,.ts --fix",
+    "format": "prettier --write src/",
+    "type-check": "tsc --noEmit",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.0",
+    "express-validator": "^7.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.0",
+    "socket.io": "^4.7.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/bcryptjs": "^2.4.0",
+    "@types/compression": "^1.7.0",
+    "@types/morgan": "^1.9.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "nodemon": "^3.0.0",
+    "prettier": "^3.0.0",
+    "supertest": "^6.3.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cafe-reservation-system.git",
+    "directory": "backend"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "supabase",
+    "reservation",
+    "api",
+    "cafe"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/cafe-reservation-system/issues"
+  },
+  "homepage": "https://github.com/your-username/cafe-reservation-system#readme"
+} 

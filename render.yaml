@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: cafe-reservation-backend
+    env: node
+    plan: starter
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://your-frontend-url.netlify.app
+    healthCheckPath: /api/health
+    autoDeploy: true
+    branch: main
+    repo: https://github.com/your-username/cafe-reservation-system
+    rootDir: backend
+
+  - type: web
+    name: cafe-reservation-frontend
+    env: static
+    plan: starter
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: PUBLIC_SUPABASE_URL
+        sync: false
+      - key: PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: PUBLIC_API_URL
+        value: https://cafe-reservation-backend.onrender.com
+    autoDeploy: true
+    branch: main
+    repo: https://github.com/your-username/cafe-reservation-system
+    rootDir: frontend
+
+databases:
+  - name: cafe-reservation-db
+    databaseName: cafe_reservation
+    user: cafe_user
+    plan: starter
+    ipAllowList: [] 
