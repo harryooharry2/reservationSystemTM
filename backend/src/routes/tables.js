@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { supabase } = require('../config/supabase');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -124,6 +125,8 @@ router.get('/:id', async (req, res) => {
 
 // Update table status (admin only)
 router.patch('/:id/status', [
+  verifyToken,
+  requireAdmin,
   body('status').isIn(['available', 'occupied', 'reserved', 'maintenance']).withMessage('Valid status is required')
 ], async (req, res) => {
   try {

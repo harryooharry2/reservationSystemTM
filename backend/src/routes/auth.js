@@ -93,7 +93,7 @@ router.get('/me', async (req, res) => {
         .status(401)
         .json({ error: getUserError?.message || 'Invalid token' });
 
-    const { data: profile, error: profileErr } = await supabase
+    const { data: profile, error: profileErr } = await supabaseAdmin
       .from('users')
       .select('id, email, name, role, created_at')
       .eq('id', user.id)
@@ -125,7 +125,7 @@ router.patch('/me', [body('name').isLength({ min: 1 })], async (req, res) => {
         .json({ error: getUserError?.message || 'Invalid token' });
 
     const { name } = req.body;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('users')
       .update({ name })
       .eq('id', user.id)
@@ -140,3 +140,72 @@ router.patch('/me', [body('name').isLength({ min: 1 })], async (req, res) => {
 });
 
 module.exports = router;
+
+// Development-only: promote a user role (requires ADMIN_SECRET)
+// POST /api/auth/dev/promote { email, role }
+if (process.env.NODE_ENV !== 'production') {
+  // Create user via admin API (email confirmed), for local/dev testing
+  // POST /api/auth/dev/create { email, password, name }
+  router.post('/dev/create', async (req, res) => {
+    try {
+      const adminSecret = req.headers['x-admin-secret'];
+      if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const { email, password, name } = req.body || {};
+      if (!email || !password || !name) {
+        return res.status(400).json({ error: 'email, password, name required' });
+      }
+
+      const { data: created, error: cErr } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { name },
+      });
+      if (cErr) return res.status(400).json({ error: cErr.message });
+
+      const user = created.user;
+      if (!user) return res.status(400).json({ error: 'Create user failed' });
+
+      const { error: upErr } = await supabaseAdmin
+        .from('users')
+        .upsert({ id: user.id, email, name, role: 'customer' }, { onConflict: 'id' });
+      if (upErr) return res.status(400).json({ error: upErr.message });
+
+      return res.json({ success: true, user: { id: user.id, email, name, role: 'customer' } });
+    } catch (e) {
+      return res.status(500).json({ error: 'Internal error', details: e.message });
+    }
+  });
+
+  router.post('/dev/promote', async (req, res) => {
+    try {
+      const adminSecret = req.headers['x-admin-secret'];
+      if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const { email, role } = req.body || {};
+      if (!email || !['customer', 'staff', 'admin'].includes(role)) {
+        return res.status(400).json({ error: 'email and valid role required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .update({ role })
+        .eq('email', email)
+        .select('id, email, name, role')
+        .single();
+
+      if (error) return res.status(400).json({ error: error.message });
+
+      return res.json({ success: true, profile: data });
+    } catch (e) {
+      return res.status(500).json({ error: 'Internal error', details: e.message });
+    }
+  });
+}
+
+
