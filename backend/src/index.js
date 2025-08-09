@@ -8,6 +8,7 @@ require('dotenv').config();
 
 // Import routes
 const tablesRouter = require('./routes/tables');
+const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,19 +18,19 @@ app.use(helmet());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:4321', 'http://localhost:3000'],
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')
+    : ['http://localhost:4321', 'http://localhost:3000'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 200,
+  message: { error: 'Too many requests from this IP, please try again later.' },
 });
 app.use('/api/', limiter);
 
@@ -49,7 +50,7 @@ app.get('/api/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -60,13 +61,15 @@ app.get('/api', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
+      auth: '/api/auth',
       tables: '/api/tables',
-      tables_available: '/api/tables/available'
-    }
+      tables_available: '/api/tables/available',
+    },
   });
 });
 
 // API routes
+app.use('/api/auth', authRouter);
 app.use('/api/tables', tablesRouter);
 
 // 404 handler
@@ -74,7 +77,7 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({
     error: 'Endpoint not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 });
 
@@ -83,7 +86,10 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message:
+      process.env.NODE_ENV === 'development'
+        ? err.message
+        : 'Something went wrong',
   });
 });
 
@@ -100,10 +106,9 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   process.exit(0);
 });
-
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
 
-module.exports = app; 
+module.exports = app;
