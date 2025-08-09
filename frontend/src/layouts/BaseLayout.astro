@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Sidebar from '../components/Sidebar.astro';
+import '../styles/global.css';
 
 export interface Props {
   title: string;
@@ -30,13 +31,13 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-secondary-50">
+  <body class="min-h-screen flex flex-col bg-secondary-900 text-secondary-100">
     {showHeader && <Header />}
 
     {showSidebar && <Sidebar />}
 
     <!-- Main content area: add left margin on md+ to account for fixed sidebar width -->
-    <main class="flex-1 pt-4 pb-10 md:ml-64">
+    <main class="flex-1 pt-4 pb-10 md:ml-64 bg-secondary-900">
       <div class="container-responsive">
         <slot />
       </div>
@@ -44,8 +45,4 @@ const {
 
     {showFooter && <Footer />}
   </body>
-</html>
-
-<style>
-  @import '../styles/global.css';
-</style> 
+</html> 
