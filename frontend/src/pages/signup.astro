@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Sign Up">
+  <section class="max-w-md mx-auto mt-10 bg-secondary-800 rounded-xl p-6 shadow-lg">
+    <h1 class="text-2xl font-semibold mb-4">Create account</h1>
+    <form id="signupForm" class="space-y-4">
+      <div>
+        <label class="block mb-1">Name</label>
+        <input name="name" required class="w-full form-input" placeholder="Your name" />
+      </div>
+      <div>
+        <label class="block mb-1">Email</label>
+        <input name="email" type="email" required class="w-full form-input" placeholder="you@example.com" />
+      </div>
+      <div>
+        <label class="block mb-1">Password</label>
+        <input name="password" type="password" minlength="6" required class="w-full form-input" placeholder="••••••" />
+      </div>
+      <button type="submit" class="btn btn-primary w-full">Sign Up</button>
+      <p class="text-sm text-secondary-300">Have an account? <a href="/login" class="text-primary-400 hover:text-primary-300">Sign in</a></p>
+      <p id="error" class="text-red-400 text-sm"></p>
+    </form>
+  </section>
+
+  <script type="module">
+    import { API_BASE } from '../lib/auth';
+    const form = document.getElementById('signupForm');
+    const errorEl = document.getElementById('error');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      const fd = new FormData(form);
+      const name = fd.get('name');
+      const email = fd.get('email');
+      const password = fd.get('password');
+      try {
+        const res = await fetch(`${API_BASE}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Signup failed');
+        window.location.href = '/login';
+      } catch (err) {
+        errorEl.textContent = err.message || 'Signup failed';
+      }
+    });
+  </script>
+</BaseLayout>
+

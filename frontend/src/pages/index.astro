@@ -13,12 +13,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           Choose from our cozy tables and enjoy a delightful dining experience.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/reservations" class="btn-primary text-lg px-8 py-4">
-            🍽️ Make a Reservation
-          </a>
-          <a href="/tables" class="btn-outline text-lg px-8 py-4">
-            📋 View Tables
-          </a>
+          <a href="/reservations" class="btn-primary text-lg px-8 py-4">🍽️ Make a Reservation</a>
+          <a href="/tables" class="btn-outline text-lg px-8 py-4">📋 View Tables</a>
+          <a href="/login" class="btn-outline text-lg px-8 py-4">🔐 Login</a>
+          <a href="/signup" class="btn-outline text-lg px-8 py-4">🆕 Sign Up</a>
         </div>
       </div>
     </div>
@@ -92,7 +90,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="text-responsive mb-8 max-w-2xl mx-auto text-secondary-300">
           Join us for an unforgettable dining experience. Book your table now and enjoy our delicious menu in a cozy atmosphere.
         </p>
-        <a href="/reservations" class="btn bg-primary-500 hover:bg-primary-600 text-white text-lg px-8 py-4">🍽️ Book Now</a>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/reservations" class="btn bg-primary-500 hover:bg-primary-600 text-white text-lg px-8 py-4">🍽️ Book Now</a>
+          <a href="/login" class="btn btn-secondary text-lg px-8 py-4">🔐 Login</a>
+          <a href="/signup" class="btn btn-secondary text-lg px-8 py-4">🆕 Sign Up</a>
+        </div>
       </div>
     </div>
   </section>

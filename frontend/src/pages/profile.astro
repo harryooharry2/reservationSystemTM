@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Your Profile">
+  <section class="max-w-2xl mx-auto mt-10 bg-secondary-800 rounded-xl p-6 shadow-lg">
+    <h1 class="text-2xl font-semibold mb-4">Profile</h1>
+    <div id="profile" class="space-y-2 text-secondary-200"></div>
+
+    <form id="nameForm" class="mt-6 space-y-3">
+      <div>
+        <label class="block mb-1">Display Name</label>
+        <input id="nameInput" class="w-full form-input" />
+      </div>
+      <button type="submit" class="btn btn-primary">Update Name</button>
+      <span id="msg" class="text-sm"></span>
+    </form>
+
+    <button id="logout" class="btn btn-secondary mt-6">Logout</button>
+  </section>
+
+  <script type="module">
+    import { API_BASE, authFetch, requireAuthRedirect, clearToken, getToken } from '../lib/auth';
+
+    requireAuthRedirect('/login');
+
+    const profEl = document.getElementById('profile');
+    const nameInput = document.getElementById('nameInput');
+    const nameForm = document.getElementById('nameForm');
+    const msg = document.getElementById('msg');
+    const logoutBtn = document.getElementById('logout');
+
+    async function loadProfile() {
+      const res = await authFetch(`${API_BASE}/auth/me`);
+      const data = await res.json();
+      if (!res.ok) {
+        clearToken();
+        window.location.href = '/login';
+        return;
+      }
+      const p = data.profile;
+      profEl.innerHTML = `
+        <p><strong>Email:</strong> ${p.email}</p>
+        <p><strong>Name:</strong> ${p.name || ''}</p>
+        <p><strong>Role:</strong> ${p.role}</p>
+      `;
+      nameInput.value = p.name || '';
+    }
+
+    nameForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const name = nameInput.value.trim();
+      const res = await authFetch(`${API_BASE}/auth/me`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data?.error || 'Update failed';
+        msg.className = 'text-red-400 text-sm';
+      } else {
+        msg.textContent = 'Updated!';
+        msg.className = 'text-green-400 text-sm';
+        loadProfile();
+      }
+    });
+
+    logoutBtn?.addEventListener('click', () => {
+      clearToken();
+      window.location.href = '/login';
+    });
+
+    // Attempt to load only if we have a token
+    if (getToken()) loadProfile();
+  </script>
+</BaseLayout>
+

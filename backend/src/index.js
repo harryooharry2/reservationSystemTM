@@ -9,6 +9,7 @@ require('dotenv').config();
 // Import routes
 const tablesRouter = require('./routes/tables');
 const authRouter = require('./routes/auth');
+const reservationsRouter = require('./routes/reservations');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +72,7 @@ app.get('/api', (req, res) => {
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/tables', tablesRouter);
+app.use('/api/reservations', reservationsRouter);
 
 // 404 handler
 app.use('/api/*', (req, res) => {
