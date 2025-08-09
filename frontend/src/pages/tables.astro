@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cafe Reserve - Tables">
+  <section class="section-padding">
+    <div class="container-responsive">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-responsive-xl font-bold text-secondary-900">Tables</h1>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-6">
+        <form id="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label class="form-label" for="date">Date</label>
+            <input id="date" name="date" type="date" class="form-input" required />
+          </div>
+          <div>
+            <label class="form-label" for="start">Start Time</label>
+            <input id="start" name="start" type="time" class="form-input" value="18:00" required />
+          </div>
+          <div>
+            <label class="form-label" for="end">End Time</label>
+            <input id="end" name="end" type="time" class="form-input" value="20:00" required />
+          </div>
+          <div>
+            <label class="form-label" for="capacity">Min Capacity</label>
+            <input id="capacity" name="capacity" type="number" min="1" class="form-input" placeholder="e.g. 4" />
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="btn-primary w-full">🔍 Check Availability</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results -->
+      <div id="results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Cards inserted here -->
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const resultsEl = document.getElementById('results');
+  const form = document.getElementById('filterForm');
+
+  function card(table) {
+    const badge = `<span class="badge ${table.status === 'available' ? 'badge-success' : 'badge-warning'}">${table.status || 'available'}</span>`;
+    return `
+      <div class="card text-center animate-fade-in">
+        <div class="text-3xl mb-3">🪑</div>
+        <h3 class="font-semibold mb-1">Table #${table.table_number ?? table.id}</h3>
+        <p class="text-sm text-secondary-600 mb-2">Capacity: ${table.capacity}</p>
+        ${badge}
+      </div>
+    `;
+  }
+
+  function render(list) {
+    if (!list || list.length === 0) {
+      resultsEl.innerHTML = `<div class="col-span-full text-center text-secondary-600">No tables match your criteria.</div>`;
+      return;
+    }
+    resultsEl.innerHTML = list.map(card).join('');
+  }
+
+  async function fetchAll() {
+    try {
+      const r = await fetch('http://localhost:3000/api/tables');
+      const data = await r.json();
+      render(data.data);
+    } catch (e) {
+      resultsEl.innerHTML = `<div class="col-span-full text-red-600">Failed to load tables.</div>`;
+    }
+  }
+
+  async function fetchAvailable(params) {
+    try {
+      const r = await fetch('http://localhost:3000/api/tables/available', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: params.date,
+          start_time: params.start,
+          end_time: params.end,
+          capacity: params.capacity ? Number(params.capacity) : undefined,
+        }),
+      });
+      const data = await r.json();
+      render(data.data);
+    } catch (e) {
+      resultsEl.innerHTML = `<div class="col-span-full text-red-600">Failed to load available tables.</div>`;
+    }
+  }
+
+  // Initialize with all tables
+  fetchAll();
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const params = Object.fromEntries(formData.entries());
+    fetchAvailable(params);
+  });
+</script>

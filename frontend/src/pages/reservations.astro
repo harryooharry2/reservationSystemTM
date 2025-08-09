@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cafe Reserve - Reservations">
+  <section class="section-padding">
+    <div class="container-responsive grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Reservation Form -->
+      <div class="lg:col-span-2 card">
+        <h1 class="text-responsive-lg font-bold text-secondary-900 mb-6">Make a Reservation</h1>
+        <form id="reserveForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label" for="name">Name</label>
+            <input id="name" name="name" type="text" class="form-input" placeholder="Your name" required />
+          </div>
+          <div>
+            <label class="form-label" for="email">Email</label>
+            <input id="email" name="email" type="email" class="form-input" placeholder="you@example.com" required />
+          </div>
+          <div>
+            <label class="form-label" for="date">Date</label>
+            <input id="date" name="date" type="date" class="form-input" required />
+          </div>
+          <div>
+            <label class="form-label" for="start">Start Time</label>
+            <input id="start" name="start" type="time" class="form-input" value="18:00" required />
+          </div>
+          <div>
+            <label class="form-label" for="end">End Time</label>
+            <input id="end" name="end" type="time" class="form-input" value="20:00" required />
+          </div>
+          <div>
+            <label class="form-label" for="party">Party Size</label>
+            <input id="party" name="party" type="number" min="1" class="form-input" placeholder="e.g. 4" required />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label" for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" rows="3" class="form-input" placeholder="Any special requests?" />
+          </div>
+          <div class="sm:col-span-2 flex justify-end gap-3 mt-2">
+            <button type="reset" class="btn-secondary">Reset</button>
+            <button type="submit" class="btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Upcoming (placeholder) -->
+      <div class="card">
+        <h2 class="text-lg font-semibold mb-4">Your Upcoming Reservations</h2>
+        <ul id="upcoming" class="space-y-3">
+          <li class="text-secondary-600">No reservations yet.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('reserveForm');
+  const list = document.getElementById('upcoming');
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
+    const item = document.createElement('li');
+    item.className = 'card';
+    item.innerHTML = `<div class="flex items-center justify-between">
+      <div>
+        <div class="font-semibold text-secondary-900">${data.name}</div>
+        <div class="text-sm text-secondary-600">${data.date} ${data.start}-${data.end} • party ${data.party}</div>
+      </div>
+      <span class="badge badge-success">Pending</span>
+    </div>`;
+    if (list.firstElementChild && list.firstElementChild.textContent?.includes('No reservations')) {
+      list.innerHTML = '';
+    }
+    list.appendChild(item);
+    form.reset();
+    alert('Reservation submitted (demo). Integration in Task #5/#6.');
+  });
+</script>

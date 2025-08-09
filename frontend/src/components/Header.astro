@@ -1,0 +1,36 @@
+---
+// Header component with responsive navigation
+---
+
+<header class="bg-white shadow-soft border-b border-secondary-100 sticky top-0 z-40 md:z-30">
+  <div class="container-responsive py-3 flex items-center gap-3">
+    <!-- Mobile: sidebar hamburger -->
+    <button id="sidebarToggle" aria-label="Open sidebar" aria-expanded="false" class="md:hidden p-2 rounded-lg text-secondary-700 hover:text-primary-700 hover:bg-secondary-100">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+
+    <!-- Brand -->
+    <a href="/" class="text-xl font-bold text-primary-600">☕ Cafe Reserve</a>
+
+    <!-- Spacer -->
+    <div class="flex-1" />
+
+    <!-- Desktop quick nav (optional shortcuts) -->
+    <nav class="hidden md:flex items-center gap-6">
+      <a href="/reservations" class="nav-link">Reservations</a>
+      <a href="/tables" class="nav-link">Tables</a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle functionality
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  mobileMenuButton?.addEventListener('click', () => {
+    mobileMenu?.classList.toggle('hidden');
+  });
+</script> 

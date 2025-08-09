@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cafe Reserve - Home">
+  <!-- Hero Section -->
+  <section class="section-padding bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div class="container-responsive text-center">
+      <h1 class="text-responsive-xl font-bold text-secondary-900 mb-6">
+        Welcome to <span class="text-primary-600">Cafe Reserve</span>
+      </h1>
+      <p class="text-responsive text-secondary-600 mb-8 max-w-2xl mx-auto">
+        Book your perfect table online with our easy-to-use reservation system. 
+        Choose from our cozy tables and enjoy a delightful dining experience.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/reservations" class="btn-primary text-lg px-8 py-4">
+          🍽️ Make a Reservation
+        </a>
+        <a href="/tables" class="btn-outline text-lg px-8 py-4">
+          📋 View Tables
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section-padding">
+    <div class="container-responsive">
+      <h2 class="text-responsive-lg font-bold text-center text-secondary-900 mb-12">
+        Why Choose Cafe Reserve?
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="card-hover text-center">
+          <div class="text-4xl mb-4">🕒</div>
+          <h3 class="text-xl font-semibold mb-3 text-secondary-900">Quick & Easy</h3>
+          <p class="text-secondary-600">Book your table in seconds with our streamlined reservation process.</p>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="card-hover text-center">
+          <div class="text-4xl mb-4">📱</div>
+          <h3 class="text-xl font-semibold mb-3 text-secondary-900">Mobile Friendly</h3>
+          <p class="text-secondary-600">Reserve from anywhere with our responsive design that works on all devices.</p>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="card-hover text-center">
+          <div class="text-4xl mb-4">🎯</div>
+          <h3 class="text-xl font-semibold mb-3 text-secondary-900">Real-time Availability</h3>
+          <p class="text-secondary-600">See live table availability and get instant confirmation for your reservation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tables Preview Section -->
+  <section class="section-padding bg-secondary-50">
+    <div class="container-responsive">
+      <h2 class="text-responsive-lg font-bold text-center text-secondary-900 mb-12">
+        Our Tables
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Table 1 -->
+        <div class="card text-center">
+          <div class="text-3xl mb-3">🪑</div>
+          <h3 class="font-semibold mb-2">Intimate Table</h3>
+          <p class="text-sm text-secondary-600 mb-3">Perfect for 2 people</p>
+          <span class="badge-success">Available</span>
+        </div>
+        
+        <!-- Table 2 -->
+        <div class="card text-center">
+          <div class="text-3xl mb-3">👨‍👩‍👧‍👦</div>
+          <h3 class="font-semibold mb-2">Family Table</h3>
+          <p class="text-sm text-secondary-600 mb-3">Seats 4 people</p>
+          <span class="badge-success">Available</span>
+        </div>
+        
+        <!-- Table 3 -->
+        <div class="card text-center">
+          <div class="text-3xl mb-3">🎉</div>
+          <h3 class="font-semibold mb-2">Party Table</h3>
+          <p class="text-sm text-secondary-600 mb-3">Seats 8 people</p>
+          <span class="badge-warning">Limited</span>
+        </div>
+        
+        <!-- Table 4 -->
+        <div class="card text-center">
+          <div class="text-3xl mb-3">🌅</div>
+          <h3 class="font-semibold mb-2">Window Seat</h3>
+          <p class="text-sm text-secondary-600 mb-3">Perfect for 2 people</p>
+          <span class="badge-success">Available</span>
+        </div>
+      </div>
+      
+      <div class="text-center mt-8">
+        <a href="/tables" class="btn-primary">
+          View All Tables
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section-padding bg-primary-600 text-white">
+    <div class="container-responsive text-center">
+      <h2 class="text-responsive-lg font-bold mb-6">
+        Ready to Reserve Your Table?
+      </h2>
+      <p class="text-responsive mb-8 max-w-2xl mx-auto opacity-90">
+        Join us for an unforgettable dining experience. Book your table now and enjoy our delicious menu in a cozy atmosphere.
+      </p>
+      <a href="/reservations" class="btn bg-white text-primary-600 hover:bg-secondary-50 text-lg px-8 py-4">
+        🍽️ Book Now
+      </a>
+    </div>
+  </section>
+</BaseLayout>

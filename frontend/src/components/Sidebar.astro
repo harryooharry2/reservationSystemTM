@@ -1,0 +1,75 @@
+---
+// Responsive Sidebar component
+const links = [
+  { href: '/', label: 'Home', icon: '🏠' },
+  { href: '/reservations', label: 'Reservations', icon: '🗓️' },
+  { href: '/tables', label: 'Tables', icon: '🪑' },
+  { href: '/about', label: 'About', icon: 'ℹ️' },
+  { href: '/contact', label: 'Contact', icon: '✉️' },
+];
+---
+
+<!-- Desktop/Tablet sidebar -->
+<aside class="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-64 md:z-40 bg-white border-r border-secondary-200 shadow-soft">
+  <div class="h-16 flex items-center px-6 border-b border-secondary-200">
+    <a href="/" class="text-xl font-bold text-primary-600">☕ Cafe Reserve</a>
+  </div>
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+    {links.map((l) => (
+      <a href={l.href} class="flex items-center gap-3 px-3 py-2 rounded-lg text-secondary-700 hover:bg-secondary-50 hover:text-primary-700 transition-colors">
+        <span class="text-lg">{l.icon}</span>
+        <span class="text-sm font-medium">{l.label}</span>
+      </a>
+    ))}
+  </nav>
+</aside>
+
+<!-- Mobile drawer sidebar -->
+<div id="mobile-drawer" class="fixed inset-0 z-50 md:hidden hidden" aria-hidden="true">
+  <div id="mobile-overlay" class="absolute inset-0 bg-black/40"></div>
+  <div class="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl border-r border-secondary-200 transform -translate-x-full transition-transform duration-200" id="mobile-panel" role="dialog" aria-modal="true" aria-label="Sidebar">
+    <div class="h-16 flex items-center px-5 border-b border-secondary-200 justify-between">
+      <a href="/" class="text-lg font-semibold text-primary-600">☕ Cafe Reserve</a>
+      <button id="sidebarClose" class="p-2 rounded-lg hover:bg-secondary-100" aria-label="Close sidebar">✖️</button>
+    </div>
+    <nav class="px-3 py-4 space-y-1">
+      {links.map((l) => (
+        <a href={l.href} class="flex items-center gap-3 px-3 py-2 rounded-lg text-secondary-700 hover:bg-secondary-50 hover:text-primary-700 transition-colors">
+          <span class="text-lg">{l.icon}</span>
+          <span class="text-sm font-medium">{l.label}</span>
+        </a>
+      ))}
+    </nav>
+  </div>
+</div>
+
+<script>
+  const drawer = document.getElementById('mobile-drawer');
+  const panel = document.getElementById('mobile-panel');
+  const overlay = document.getElementById('mobile-overlay');
+  const openBtn = document.getElementById('sidebarToggle');
+  const closeBtn = document.getElementById('sidebarClose');
+
+  function openDrawer() {
+    if (!drawer || !panel) return;
+    drawer.classList.remove('hidden');
+    // next frame to allow transition
+    requestAnimationFrame(() => {
+      panel.classList.remove('-translate-x-full');
+      openBtn?.setAttribute('aria-expanded', 'true');
+    });
+  }
+  function closeDrawer() {
+    if (!drawer || !panel) return;
+    panel.classList.add('-translate-x-full');
+    openBtn?.setAttribute('aria-expanded', 'false');
+    setTimeout(() => drawer.classList.add('hidden'), 200);
+  }
+
+  openBtn?.addEventListener('click', openDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+  closeBtn?.addEventListener('click', closeDrawer);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+</script>
