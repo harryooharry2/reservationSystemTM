@@ -1,5 +1,19 @@
 {
+  "name": "reservation-system",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -c \"blue,green\" -n frontend,backend \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "start": "concurrently -c \"blue,green\" -n frontend,backend \"npm start --prefix frontend\" \"npm start --prefix backend\"",
+    "build": "npm run build --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "echo backend has no build step"
+  },
   "dependencies": {
     "task-master-ai": "^0.23.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }
