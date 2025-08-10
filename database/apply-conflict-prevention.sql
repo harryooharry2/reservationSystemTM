@@ -1,0 +1,19 @@
+-- Instructions for applying enhanced conflict prevention functions (Task 6.3)
+-- 
+-- 1. Go to your Supabase project dashboard
+-- 2. Navigate to SQL Editor
+-- 3. Copy and paste the contents of database/conflict_prevention.sql
+-- 4. Execute the SQL to create the enhanced functions
+--
+-- These functions provide:
+-- - Time buffer system (15-minute gaps between bookings)
+-- - Enhanced capacity validation
+-- - Database transactions for atomic operations
+-- - Stronger conflict detection algorithms
+-- - Safe reservation creation and updates
+--
+-- After applying, test with:
+-- 1. Create overlapping reservations to verify conflict prevention
+-- 2. Test capacity validation with party sizes exceeding table capacity
+-- 3. Verify time buffer system prevents back-to-back bookings
+-- 4. Test concurrent booking attempts to ensure data consistency 

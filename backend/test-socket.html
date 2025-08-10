@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test Client</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .log { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; height: 300px; overflow-y: auto; margin: 10px 0; }
+        .event { margin: 5px 0; padding: 5px; border-left: 3px solid #007bff; }
+        .button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .button:hover { background-color: #0056b3; }
+        .input-group { margin: 10px 0; }
+        .input-group label { display: inline-block; width: 120px; }
+        .input-group input { padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 WebSocket Test Client</h1>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div>
+            <button class="button" onclick="connect()">Connect</button>
+            <button class="button" onclick="disconnect()">Disconnect</button>
+            <button class="button" onclick="clearLog()">Clear Log</button>
+            <button class="button" onclick="ping()">Ping</button>
+        </div>
+        
+        <h3>Join Rooms</h3>
+        <div class="input-group">
+            <label>Table IDs:</label>
+            <input type="text" id="tableIds" placeholder="1,2,3" value="1,2">
+        </div>
+        <div class="input-group">
+            <label>User ID:</label>
+            <input type="text" id="userId" placeholder="user-uuid" value="test-user-123">
+        </div>
+        <div class="input-group">
+            <label>Admin ID:</label>
+            <input type="text" id="adminId" placeholder="admin-uuid" value="admin-456">
+        </div>
+        
+        <div>
+            <button class="button" onclick="joinTableUpdates()">Join Table Updates</button>
+            <button class="button" onclick="joinReservationUpdates()">Join Reservation Updates</button>
+            <button class="button" onclick="joinAdminDashboard()">Join Admin Dashboard</button>
+        </div>
+        
+        <h3>Event Log</h3>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            eventDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            logDiv.appendChild(eventDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(connected) {
+            const statusDiv = document.getElementById('status');
+            if (connected) {
+                statusDiv.className = 'status connected';
+                statusDiv.textContent = 'Connected';
+            } else {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = 'Disconnected';
+            }
+        }
+        
+        function connect() {
+            if (socket) {
+                log('Already connected');
+                return;
+            }
+            
+            log('Connecting to WebSocket server...');
+            socket = io('http://localhost:3000');
+            
+            socket.on('connect', () => {
+                log('✅ Connected to server', 'success');
+                updateStatus(true);
+            });
+            
+            socket.on('disconnect', () => {
+                log('❌ Disconnected from server', 'error');
+                updateStatus(false);
+            });
+            
+            socket.on('connect_error', (error) => {
+                log(`❌ Connection error: ${error.message}`, 'error');
+                updateStatus(false);
+            });
+            
+            socket.on('pong', (data) => {
+                log(`🏓 Pong received: ${JSON.stringify(data)}`);
+            });
+            
+            socket.on('table-status-updated', (data) => {
+                log(`📋 Table status updated: ${JSON.stringify(data)}`, 'table');
+            });
+            
+            socket.on('reservation-updated', (data) => {
+                log(`📅 Reservation updated: ${JSON.stringify(data)}`, 'reservation');
+            });
+            
+            socket.on('availability-updated', (data) => {
+                log(`🔄 Availability updated: ${JSON.stringify(data)}`, 'availability');
+            });
+            
+            socket.on('reservation-created', (data) => {
+                log(`✅ Reservation created: ${JSON.stringify(data)}`, 'success');
+            });
+            
+            socket.on('reservation-cancelled', (data) => {
+                log(`❌ Reservation cancelled: ${JSON.stringify(data)}`, 'error');
+            });
+            
+            socket.on('system-message', (data) => {
+                log(`📢 System message: ${JSON.stringify(data)}`, 'system');
+            });
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                log('Disconnected from server');
+                updateStatus(false);
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function ping() {
+            if (socket) {
+                socket.emit('ping');
+                log('🏓 Ping sent');
+            } else {
+                log('❌ Not connected');
+            }
+        }
+        
+        function joinTableUpdates() {
+            if (!socket) {
+                log('❌ Not connected');
+                return;
+            }
+            
+            const tableIds = document.getElementById('tableIds').value
+                .split(',')
+                .map(id => parseInt(id.trim()))
+                .filter(id => !isNaN(id));
+            
+            socket.emit('join-table-updates', { tableIds });
+            log(`📋 Joined table updates for tables: ${tableIds.join(', ')}`);
+        }
+        
+        function joinReservationUpdates() {
+            if (!socket) {
+                log('❌ Not connected');
+                return;
+            }
+            
+            const userId = document.getElementById('userId').value.trim();
+            if (!userId) {
+                log('❌ Please enter a user ID');
+                return;
+            }
+            
+            socket.emit('join-reservation-updates', { userId });
+            log(`📅 Joined reservation updates for user: ${userId}`);
+        }
+        
+        function joinAdminDashboard() {
+            if (!socket) {
+                log('❌ Not connected');
+                return;
+            }
+            
+            const adminId = document.getElementById('adminId').value.trim();
+            if (!adminId) {
+                log('❌ Please enter an admin ID');
+                return;
+            }
+            
+            socket.emit('join-admin-dashboard', { adminId });
+            log(`👨‍💼 Joined admin dashboard as: ${adminId}`);
+        }
+        
+        // Auto-connect on page load
+        window.onload = () => {
+            log('Page loaded, ready to connect');
+        };
+    </script>
+</body>
+</html> 
