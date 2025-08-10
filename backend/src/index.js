@@ -123,7 +123,9 @@ app.use((err, req, res, next) => {
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔌 Socket.IO status: http://localhost:${PORT}/api/socket-status`);
+  console.log(
+    `🔌 Socket.IO status: http://localhost:${PORT}/api/socket-status`
+  );
   console.log(`📋 API docs: http://localhost:${PORT}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

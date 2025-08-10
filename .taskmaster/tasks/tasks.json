@@ -404,7 +404,7 @@
               "6.1"
             ],
             "details": "Configure Socket.IO server, create event handlers for table status updates, implement room-based broadcasting for efficient updates, and handle connection management with proper error handling.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -415,7 +415,7 @@
               "6.1"
             ],
             "details": "Develop auth middleware for token verification, create role-based route protection, implement Supabase JWT validation, and add proper authorization checks for different user roles.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
@@ -704,7 +704,7 @@
     ],
     "metadata": {
       "created": "2025-08-07T13:33:33.369Z",
-      "updated": "2025-08-10T03:47:16.743Z",
+      "updated": "2025-08-10T04:22:47.908Z",
       "description": "Tasks for master context"
     }
   }
