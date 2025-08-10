@@ -1,11 +1,11 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { supabase } = require('../config/supabase');
-const { 
-  verifyToken, 
-  requireAdmin, 
+const {
+  verifyToken,
+  requireAdmin,
   requireStaffOrAdmin,
-  logAuthEvent 
+  logAuthEvent,
 } = require('../middleware/auth');
 
 const router = express.Router();
@@ -270,9 +270,9 @@ router.patch(
 
       const { data, error } = await supabase
         .from('cafe_tables')
-        .update({ 
+        .update({
           status,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -309,11 +309,7 @@ router.patch(
 // DELETE /api/tables/:id - Delete table (admin only)
 router.delete(
   '/:id',
-  [
-    verifyToken,
-    requireAdmin,
-    logAuthEvent('TABLE_DELETION'),
-  ],
+  [verifyToken, requireAdmin, logAuthEvent('TABLE_DELETION')],
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -371,11 +367,7 @@ router.delete(
 // GET /api/tables/:id/reservations - Get table reservations (staff/admin only)
 router.get(
   '/:id/reservations',
-  [
-    verifyToken,
-    requireStaffOrAdmin,
-    logAuthEvent('TABLE_RESERVATIONS_ACCESS'),
-  ],
+  [verifyToken, requireStaffOrAdmin, logAuthEvent('TABLE_RESERVATIONS_ACCESS')],
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -383,7 +375,8 @@ router.get(
 
       let query = supabase
         .from('reservations')
-        .select(`
+        .select(
+          `
           id, 
           user_id, 
           reservation_date, 
@@ -394,7 +387,8 @@ router.get(
           party_size,
           created_at,
           users!inner(name, email)
-        `)
+        `
+        )
         .eq('table_id', id)
         .order('reservation_date', { ascending: true })
         .order('start_time', { ascending: true });

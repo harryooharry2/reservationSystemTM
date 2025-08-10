@@ -415,7 +415,7 @@
               "6.1"
             ],
             "details": "Develop auth middleware for token verification, create role-based route protection, implement Supabase JWT validation, and add proper authorization checks for different user roles.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -429,7 +429,7 @@
               "6.5"
             ],
             "details": "Create comprehensive validation schemas, implement business rules for reservation policies, integrate real-time updates with database changes, and ensure data consistency across all operations.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           }
         ]
@@ -704,7 +704,7 @@
     ],
     "metadata": {
       "created": "2025-08-07T13:33:33.369Z",
-      "updated": "2025-08-10T04:22:47.908Z",
+      "updated": "2025-08-10T05:26:53.950Z",
       "description": "Tasks for master context"
     }
   }
