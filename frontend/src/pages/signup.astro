@@ -24,8 +24,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </form>
   </section>
 
-  <script type="module">
-    import { API_BASE } from '../lib/auth';
+  <script>
+    // Inline auth functions to avoid import issues
+    const API_BASE = 'http://localhost:3000/api';
+    
     const form = document.getElementById('signupForm');
     const errorEl = document.getElementById('error');
     form?.addEventListener('submit', async (e) => {

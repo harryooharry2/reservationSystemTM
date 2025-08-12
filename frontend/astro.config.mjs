@@ -7,9 +7,7 @@ export default defineConfig({
   integrations: [tailwind()],
   server: {
     port: 4321,
-    host: true
+    host: true,
   },
-  build: {
-    outDir: 'dist'
-  }
+  outDir: 'dist',
 });

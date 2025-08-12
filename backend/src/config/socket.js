@@ -10,18 +10,18 @@ class SocketManager {
   initialize(server) {
     this.io = new Server(server, {
       cors: {
-        origin: process.env.CORS_ORIGIN 
+        origin: process.env.CORS_ORIGIN
           ? process.env.CORS_ORIGIN.split(',')
           : ['http://localhost:4321', 'http://localhost:3000'],
         methods: ['GET', 'POST'],
-        credentials: true
+        credentials: true,
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
 
     this.setupEventHandlers();
     this.setupSupabaseRealtime();
-    
+
     console.log('🔌 Socket.IO server initialized');
     return this.io;
   }
@@ -34,11 +34,13 @@ class SocketManager {
       socket.on('join-table-updates', (data) => {
         const { tableIds } = data;
         if (tableIds && Array.isArray(tableIds)) {
-          tableIds.forEach(tableId => {
+          tableIds.forEach((tableId) => {
             socket.join(`table-${tableId}`);
           });
           this.connectedClients.set(socket.id, { tableIds, socket });
-          console.log(`📋 Client ${socket.id} joined table rooms: ${tableIds.join(', ')}`);
+          console.log(
+            `📋 Client ${socket.id} joined table rooms: ${tableIds.join(', ')}`
+          );
         }
       });
 
@@ -47,12 +49,14 @@ class SocketManager {
         const { userId } = data;
         if (userId) {
           socket.join(`user-reservations-${userId}`);
-          this.connectedClients.set(socket.id, { 
-            ...this.connectedClients.get(socket.id), 
+          this.connectedClients.set(socket.id, {
+            ...this.connectedClients.get(socket.id),
             userId,
-            socket 
+            socket,
           });
-          console.log(`📅 Client ${socket.id} joined user reservations room: ${userId}`);
+          console.log(
+            `📅 Client ${socket.id} joined user reservations room: ${userId}`
+          );
         }
       });
 
@@ -61,10 +65,10 @@ class SocketManager {
         const { adminId } = data;
         if (adminId) {
           socket.join('admin-dashboard');
-          this.connectedClients.set(socket.id, { 
-            ...this.connectedClients.get(socket.id), 
+          this.connectedClients.set(socket.id, {
+            ...this.connectedClients.get(socket.id),
             adminId,
-            socket 
+            socket,
           });
           console.log(`👨‍💼 Admin ${adminId} joined dashboard room`);
         }
@@ -97,7 +101,7 @@ class SocketManager {
         {
           event: '*',
           schema: 'public',
-          table: 'cafe_tables'
+          table: 'cafe_tables',
         },
         (payload) => {
           console.log('📋 Table status change:', payload);
@@ -114,7 +118,7 @@ class SocketManager {
         {
           event: '*',
           schema: 'public',
-          table: 'reservations'
+          table: 'reservations',
         },
         (payload) => {
           console.log('📅 Reservation change:', payload);
@@ -144,16 +148,19 @@ class SocketManager {
       eventType, // INSERT, UPDATE, DELETE
       oldStatus: oldRecord?.status,
       newStatus: newRecord?.status,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Broadcast to specific table room
     this.io.to(`table-${tableId}`).emit('table-status-updated', updateData);
-    
+
     // Broadcast to admin dashboard
     this.io.to('admin-dashboard').emit('table-status-updated', updateData);
-    
-    console.log(`📋 Broadcasted table update for table ${tableId}:`, updateData);
+
+    console.log(
+      `📋 Broadcasted table update for table ${tableId}:`,
+      updateData
+    );
   }
 
   broadcastReservationUpdate(payload) {
@@ -168,16 +175,21 @@ class SocketManager {
       eventType,
       oldData: oldRecord,
       newData: newRecord,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Broadcast to specific user's reservation room
-    this.io.to(`user-reservations-${userId}`).emit('reservation-updated', updateData);
-    
+    this.io
+      .to(`user-reservations-${userId}`)
+      .emit('reservation-updated', updateData);
+
     // Broadcast to admin dashboard
     this.io.to('admin-dashboard').emit('reservation-updated', updateData);
-    
-    console.log(`📅 Broadcasted reservation update for user ${userId}:`, updateData);
+
+    console.log(
+      `📅 Broadcasted reservation update for user ${userId}:`,
+      updateData
+    );
   }
 
   // Manual broadcast methods for API-triggered updates
@@ -185,32 +197,32 @@ class SocketManager {
     this.io.to(`table-${tableId}`).emit('availability-updated', {
       tableId,
       availability: availabilityData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   broadcastReservationCreated(reservationData) {
     const { user_id, table_id } = reservationData;
-    
+
     // Broadcast to user's reservation room
     this.io.to(`user-reservations-${user_id}`).emit('reservation-created', {
       reservation: reservationData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // Broadcast table availability update
     this.broadcastAvailabilityUpdate(table_id, { status: 'reserved' });
   }
 
   broadcastReservationCancelled(reservationData) {
     const { user_id, table_id } = reservationData;
-    
+
     // Broadcast to user's reservation room
     this.io.to(`user-reservations-${user_id}`).emit('reservation-cancelled', {
       reservation: reservationData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // Broadcast table availability update
     this.broadcastAvailabilityUpdate(table_id, { status: 'available' });
   }
@@ -223,10 +235,32 @@ class SocketManager {
         socketId,
         tableIds: client.tableIds || [],
         userId: client.userId,
-        adminId: client.adminId
+        adminId: client.adminId,
       });
     });
     return info;
+  }
+
+  // Get active rooms
+  getActiveRooms() {
+    const rooms = new Set();
+    this.connectedClients.forEach((client) => {
+      if (client.tableIds) {
+        client.tableIds.forEach((tableId) => rooms.add(`table-${tableId}`));
+      }
+      if (client.userId) {
+        rooms.add(`user-reservations-${client.userId}`);
+      }
+      if (client.adminId) {
+        rooms.add('admin-dashboard');
+      }
+    });
+    return Array.from(rooms);
+  }
+
+  // Get total connections
+  getTotalConnections() {
+    return this.connectedClients.size;
   }
 
   // Broadcast system message
@@ -234,7 +268,7 @@ class SocketManager {
     const systemMessage = {
       type: 'system',
       message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     if (room) {
@@ -245,4 +279,4 @@ class SocketManager {
   }
 }
 
-module.exports = new SocketManager(); 
+module.exports = new SocketManager();

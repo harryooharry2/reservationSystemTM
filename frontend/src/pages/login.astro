@@ -20,8 +20,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </form>
   </section>
 
-  <script type="module">
-    import { API_BASE, saveToken } from '../lib/auth';
+  <script>
+    // Inline auth functions to avoid import issues
+    const API_BASE = 'http://localhost:3000/api';
+    const TOKEN_KEY = 'sb_token';
+    const USER_KEY = 'sb_user';
+    
+    function saveToken(token) {
+      try {
+        localStorage.setItem(TOKEN_KEY, token);
+      } catch {}
+    }
+    
+    function saveUser(user) {
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      } catch {}
+    }
+    
     const form = document.getElementById('loginForm');
     const errorEl = document.getElementById('error');
     form?.addEventListener('submit', async (e) => {
@@ -40,8 +56,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (!res.ok) throw new Error(data?.error || 'Login failed');
         const token = data?.session?.access_token;
         if (!token) throw new Error('No session token');
+        
         saveToken(token);
-        window.location.href = '/profile';
+        saveUser(data.user);
+        
+        // Check user role and redirect accordingly
+        const userRole = data?.user?.user_metadata?.role || data?.user?.role;
+        if (userRole === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/profile';
+        }
       } catch (err) {
         errorEl.textContent = err.message || 'Login failed';
       }

@@ -1,0 +1,31 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { 
+  title, 
+  description = "Admin Dashboard - Cafe Reserve Management System",
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-secondary-900 text-secondary-100">
+    <slot />
+    
+    <!-- Socket.IO Client for real-time functionality -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  </body>
+</html> 

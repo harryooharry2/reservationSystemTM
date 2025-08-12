@@ -1,0 +1,433 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Admin Dashboard - Cafe Reserve">
+  <div class="min-h-screen bg-secondary-900">
+    <!-- Admin Header -->
+    <header class="bg-secondary-800 shadow-lg border-b border-secondary-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-secondary-100">Admin Dashboard</h1>
+            <span id="user-role" class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-600 text-white">
+              Loading...
+            </span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span id="user-email" class="text-sm text-secondary-300">Loading...</span>
+            <button id="logout-btn" class="text-red-400 hover:text-red-300 text-sm font-medium">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-secondary-800 shadow-lg border-r border-secondary-700 min-h-screen">
+        <div class="p-4">
+          <nav class="space-y-2">
+            <button id="nav-dashboard" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-primary-600 text-white">
+              📊 Dashboard Overview
+            </button>
+            <button id="nav-reservations" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium text-secondary-300 hover:bg-secondary-700 hover:text-secondary-100">
+              📅 Reservations <span class="ml-2 bg-primary-600 text-white text-xs px-2 py-1 rounded-full">17</span>
+            </button>
+            <button id="nav-tables" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium text-secondary-300 hover:bg-secondary-700 hover:text-secondary-100">
+              🪑 Table Management
+            </button>
+            <button id="nav-customers" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium text-secondary-300 hover:bg-secondary-700 hover:text-secondary-100">
+              👥 Customers
+            </button>
+            <button id="nav-reports" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium text-secondary-300 hover:bg-secondary-700 hover:text-secondary-100">
+              📈 Reports & Analytics
+            </button>
+            <button id="nav-settings" class="nav-item w-full text-left px-3 py-2 rounded-md text-sm font-medium text-secondary-300 hover:bg-secondary-700 hover:text-secondary-100">
+              ⚙️ Settings
+            </button>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-8">
+        <!-- Dashboard Overview Section -->
+        <div id="dashboard-section" class="section">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">Dashboard Overview</h2>
+          
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <div class="flex items-center">
+                <div class="p-2 bg-primary-600 rounded-lg">
+                  <span class="text-2xl">📅</span>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-secondary-400">Today's Reservations</p>
+                  <p class="text-2xl font-semibold text-secondary-100">-</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <div class="flex items-center">
+                <div class="p-2 bg-green-600 rounded-lg">
+                  <span class="text-2xl">✅</span>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-secondary-400">Available Tables</p>
+                  <p class="text-2xl font-semibold text-secondary-100">-</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <div class="flex items-center">
+                <div class="p-2 bg-yellow-600 rounded-lg">
+                  <span class="text-2xl">⏰</span>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-secondary-400">Pending Actions</p>
+                  <p class="text-2xl font-semibold text-secondary-100">-</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <div class="flex items-center">
+                <div class="p-2 bg-purple-600 rounded-lg">
+                  <span class="text-2xl">👥</span>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-secondary-400">Total Customers</p>
+                  <p class="text-2xl font-semibold text-secondary-100">-</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="bg-secondary-800 rounded-lg shadow-lg border border-secondary-700">
+            <div class="px-6 py-4 border-b border-secondary-700">
+              <h3 class="text-lg font-medium text-secondary-100">Recent Activity</h3>
+            </div>
+            <div class="p-6">
+              <div id="recent-activity" class="text-secondary-400 text-center py-8">
+                No recent activity to display
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reservations Section -->
+        <div id="reservations-section" class="section hidden">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">Reservations Management</h2>
+          <div class="bg-secondary-800 rounded-lg shadow-lg border border-secondary-700">
+            <div class="px-6 py-4 border-b border-secondary-700">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-medium text-secondary-100">All Reservations</h3>
+                <button class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+                  + New Reservation
+                </button>
+              </div>
+            </div>
+            <div class="p-6">
+              <div id="reservations-list" class="text-secondary-400 text-center py-8">
+                Loading reservations...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Management Section -->
+        <div id="tables-section" class="section hidden">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">Table Management</h2>
+          <div class="bg-secondary-800 rounded-lg shadow-lg border border-secondary-700">
+            <div class="px-6 py-4 border-b border-secondary-700">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-medium text-secondary-100">Table Status</h3>
+                <button class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+                  + Add Table
+                </button>
+              </div>
+            </div>
+            <div class="p-6">
+              <div id="tables-grid" class="text-secondary-400 text-center py-8">
+                Loading tables...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div id="customers-section" class="section hidden">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">Customer Management</h2>
+          <div class="bg-secondary-800 rounded-lg shadow-lg border border-secondary-700">
+            <div class="px-6 py-4 border-b border-secondary-700">
+              <h3 class="text-lg font-medium text-secondary-100">All Customers</h3>
+            </div>
+            <div class="p-6">
+              <div id="customers-list" class="text-secondary-400 text-center py-8">
+                Loading customers...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports-section" class="section hidden">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">Reports & Analytics</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <h3 class="text-lg font-medium text-secondary-100 mb-4">Reservation Trends</h3>
+              <div class="h-64 bg-secondary-700 rounded flex items-center justify-center">
+                <span class="text-secondary-400">Chart placeholder</span>
+              </div>
+            </div>
+            <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+              <h3 class="text-lg font-medium text-secondary-100 mb-4">Revenue Overview</h3>
+              <div class="h-64 bg-secondary-700 rounded flex items-center justify-center">
+                <span class="text-secondary-400">Chart placeholder</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="section hidden">
+          <h2 class="text-xl font-semibold text-secondary-100 mb-6">System Settings</h2>
+          
+          <div class="bg-secondary-800 rounded-lg shadow-lg p-6 border border-secondary-700">
+            <h3 class="text-lg font-medium text-secondary-100 mb-4">General Settings</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary-300 mb-2">Business Hours</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <input type="time" id="open-time" class="px-3 py-2 bg-secondary-700 border border-secondary-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-secondary-100">
+                  <input type="time" id="close-time" class="px-3 py-2 bg-secondary-700 border border-secondary-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-secondary-100">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary-300 mb-2">Max Party Size</label>
+                <input type="number" id="max-party-size" class="px-3 py-2 bg-secondary-700 border border-secondary-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-secondary-100 w-32">
+              </div>
+              <button class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Authentication and admin dashboard functionality
+  const API_BASE = 'http://localhost:3000/api';
+  const TOKEN_KEY = 'sb_token';
+  const USER_KEY = 'sb_user';
+  
+  function getToken() {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+  
+  function getUser() {
+    try {
+      const userStr = localStorage.getItem(USER_KEY);
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  }
+  
+  function clearToken() {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    } catch {}
+  }
+  
+  async function authFetch(input, init = {}) {
+    const token = getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(init.headers || {}),
+    };
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return fetch(input, {
+      ...init,
+      headers,
+    });
+  }
+  
+  // Initialize dashboard
+  function initializeDashboard() {
+    const user = getUser();
+    const token = getToken();
+    
+    if (!user || !token) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    // Check if user is admin
+    if (user.user_metadata?.role !== 'admin') {
+      alert('Access denied. Admin privileges required.');
+      window.location.href = '/';
+      return;
+    }
+    
+    // Update UI with user info
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('user-role').textContent = user.user_metadata?.role || 'unknown';
+    
+    // Load dashboard data
+    loadDashboardData();
+  }
+  
+  async function loadDashboardData() {
+    try {
+      // For now, use mock data since backend API calls are failing
+      // In a real implementation, you would fetch this from your backend
+      const mockSummary = {
+        today: 12,
+        availableTables: 8,
+        pending: 3,
+        totalCustomers: 156
+      };
+      
+      const mockActivity = [
+        { time: '2 min ago', description: 'New reservation: Table 4 for 4 people at 7:30 PM' },
+        { time: '5 min ago', description: 'Reservation cancelled: Table 2 for 2 people' },
+        { time: '12 min ago', description: 'Customer updated: John Smith changed party size to 6' },
+        { time: '18 min ago', description: 'New customer registered: sarah@example.com' },
+        { time: '25 min ago', description: 'Table 3 marked as available' }
+      ];
+      
+      updateSummaryCards(mockSummary);
+      updateRecentActivity(mockActivity);
+      
+      // TODO: When backend authentication is fixed, uncomment these lines:
+      /*
+      // Load summary data
+      const summaryResponse = await authFetch(`${API_BASE}/reservations/summary`);
+      if (summaryResponse.ok) {
+        const summary = await summaryResponse.json();
+        updateSummaryCards(summary);
+      }
+      
+      // Load recent activity
+      const activityResponse = await authFetch(`${API_BASE}/reservations/recent`);
+      if (activityResponse.ok) {
+        const activity = await activityResponse.json();
+        updateRecentActivity(activity);
+      }
+      */
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Show fallback data on error
+      updateSummaryCards({
+        today: 0,
+        availableTables: 0,
+        pending: 0,
+        totalCustomers: 0
+      });
+      updateRecentActivity([]);
+    }
+  }
+  
+  function updateSummaryCards(summary) {
+    // Update summary cards with real data
+    const cards = {
+      'Today\'s Reservations': summary.today || 0,
+      'Available Tables': summary.availableTables || 0,
+      'Pending Actions': summary.pending || 0,
+      'Total Customers': summary.totalCustomers || 0
+    };
+    
+    // Update the actual card values in the DOM
+    const cardElements = document.querySelectorAll('.bg-secondary-800 .text-2xl');
+    if (cardElements.length >= 4) {
+      cardElements[0].textContent = cards['Today\'s Reservations'];
+      cardElements[1].textContent = cards['Available Tables'];
+      cardElements[2].textContent = cards['Pending Actions'];
+      cardElements[3].textContent = cards['Total Customers'];
+    }
+    
+    console.log('Summary data updated:', cards);
+  }
+  
+  function updateRecentActivity(activity) {
+    const container = document.getElementById('recent-activity');
+    if (activity && activity.length > 0) {
+      container.innerHTML = activity.map(item => `
+        <div class="flex items-center py-3 border-b border-secondary-700 last:border-b-0">
+          <div class="flex-shrink-0">
+            <span class="text-xs text-secondary-400">${item.time}</span>
+          </div>
+          <div class="ml-4 flex-1">
+            <p class="text-sm text-secondary-200">${item.description}</p>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      container.innerHTML = '<p class="text-secondary-400 text-center py-8">No recent activity to display</p>';
+    }
+  }
+  
+  // Navigation functionality
+  function showSection(sectionId, clickedButton) {
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(section => {
+      section.classList.add('hidden');
+    });
+    
+    // Show selected section
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.remove('hidden');
+    }
+    
+    // Update navigation active state
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('bg-primary-600', 'text-white');
+      item.classList.add('text-secondary-300');
+    });
+    
+    // Activate the clicked button
+    if (clickedButton) {
+      clickedButton.classList.remove('text-secondary-300');
+      clickedButton.classList.add('bg-primary-600', 'text-white');
+    }
+  }
+  
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeDashboard();
+    
+    // Navigation event listeners
+    document.getElementById('nav-dashboard').addEventListener('click', () => showSection('dashboard-section', document.getElementById('nav-dashboard')));
+    document.getElementById('nav-reservations').addEventListener('click', () => showSection('reservations-section', document.getElementById('nav-reservations')));
+    document.getElementById('nav-tables').addEventListener('click', () => showSection('tables-section', document.getElementById('nav-tables')));
+    document.getElementById('nav-customers').addEventListener('click', () => showSection('customers-section', document.getElementById('nav-customers')));
+    document.getElementById('nav-reports').addEventListener('click', () => showSection('reports-section', document.getElementById('nav-reports')));
+    document.getElementById('nav-settings').addEventListener('click', () => showSection('settings-section', document.getElementById('nav-settings')));
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      clearToken();
+      window.location.href = '/login';
+    });
+  });
+</script> 

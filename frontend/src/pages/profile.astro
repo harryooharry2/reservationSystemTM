@@ -19,8 +19,42 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <button id="logout" class="btn btn-secondary mt-6">Logout</button>
   </section>
 
-  <script type="module">
-    import { API_BASE, authFetch, requireAuthRedirect, clearToken, getToken } from '../lib/auth';
+  <script>
+    // Inline auth functions to avoid import issues
+    const API_BASE = 'http://localhost:3000/api';
+    const TOKEN_KEY = 'sb_token';
+    
+    function getToken() {
+      try {
+        return localStorage.getItem(TOKEN_KEY);
+      } catch {
+        return null;
+      }
+    }
+    
+    function clearToken() {
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+      } catch {}
+    }
+    
+    function requireAuthRedirect(path = '/login') {
+      if (typeof window !== 'undefined' && !getToken()) {
+        window.location.href = path;
+      }
+    }
+    
+    async function authFetch(input, init = {}) {
+      const token = getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(init.headers || {}),
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      return fetch(input, { ...init, headers });
+    }
 
     requireAuthRedirect('/login');
 

@@ -1,4 +1,6 @@
 const { supabase } = require('../config/supabase');
+const { verifyToken: verifyJWTToken } = require('./security');
+const { isTokenBlacklisted } = require('./tokenBlacklist');
 
 /**
  * Enhanced JWT token verification middleware
@@ -8,21 +10,41 @@ async function verifyToken(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    
+
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Missing authentication token',
-        code: 'MISSING_TOKEN'
+        code: 'MISSING_TOKEN',
       });
     }
 
-    // Verify token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
+    // Check if token is blacklisted
+    if (isTokenBlacklisted(token)) {
+      return res.status(401).json({
+        error: 'Token has been revoked',
+        code: 'TOKEN_REVOKED',
+      });
+    }
+
+    // First verify JWT token
+    const jwtPayload = verifyJWTToken(token);
+    if (!jwtPayload) {
+      return res.status(401).json({
+        error: 'Invalid or expired JWT token',
+        code: 'INVALID_JWT',
+      });
+    }
+
+    // Then verify with Supabase for additional security
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+
     if (error || !user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: error?.message || 'Invalid or expired token',
-        code: 'INVALID_TOKEN'
+        code: 'INVALID_TOKEN',
       });
     }
 
@@ -34,30 +56,30 @@ async function verifyToken(req, res, next) {
       .single();
 
     if (profileError) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'User profile not found',
-        code: 'PROFILE_NOT_FOUND'
+        code: 'PROFILE_NOT_FOUND',
       });
     }
 
     // Attach user and profile data to request
     req.user = user;
     req.profile = profile;
-    
+
     // Add user info to request for logging
     req.userInfo = {
       id: user.id,
       email: profile.email,
       role: profile.role,
-      name: profile.name
+      name: profile.name,
     };
 
     next();
   } catch (error) {
     console.error('Token verification error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Authentication service error',
-      code: 'AUTH_SERVICE_ERROR'
+      code: 'AUTH_SERVICE_ERROR',
     });
   }
 }
@@ -69,9 +91,9 @@ async function verifyToken(req, res, next) {
 function requireRole(allowedRoles) {
   return (req, res, next) => {
     if (!req.profile) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication required',
-        code: 'AUTHENTICATION_REQUIRED'
+        code: 'AUTHENTICATION_REQUIRED',
       });
     }
 
@@ -79,11 +101,11 @@ function requireRole(allowedRoles) {
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
     if (!roles.includes(userRole)) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: `Access denied. Required role(s): ${roles.join(', ')}. Your role: ${userRole}`,
         code: 'INSUFFICIENT_PERMISSIONS',
         requiredRoles: roles,
-        userRole: userRole
+        userRole: userRole,
       });
     }
 
@@ -120,24 +142,24 @@ function requireOwnership(resourceType, idField = 'id') {
   return async (req, res, next) => {
     try {
       if (!req.profile) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           error: 'Authentication required',
-          code: 'AUTHENTICATION_REQUIRED'
+          code: 'AUTHENTICATION_REQUIRED',
         });
       }
 
       const resourceId = req.params[idField] || req.body[idField];
-      
+
       if (!resourceId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: `Resource ${idField} is required`,
-          code: 'MISSING_RESOURCE_ID'
+          code: 'MISSING_RESOURCE_ID',
         });
       }
 
       // Check resource ownership based on type
       let ownershipQuery;
-      
+
       switch (resourceType) {
         case 'reservation':
           ownershipQuery = supabase
@@ -149,42 +171,42 @@ function requireOwnership(resourceType, idField = 'id') {
         case 'profile':
           // Users can only access their own profile
           if (resourceId !== req.profile.id) {
-            return res.status(403).json({ 
+            return res.status(403).json({
               error: 'Access denied to other user profiles',
-              code: 'PROFILE_ACCESS_DENIED'
+              code: 'PROFILE_ACCESS_DENIED',
             });
           }
           return next();
         default:
-          return res.status(500).json({ 
+          return res.status(500).json({
             error: 'Invalid resource type for ownership check',
-            code: 'INVALID_RESOURCE_TYPE'
+            code: 'INVALID_RESOURCE_TYPE',
           });
       }
 
       const { data: resource, error } = await ownershipQuery;
-      
+
       if (error || !resource) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: `${resourceType} not found`,
-          code: 'RESOURCE_NOT_FOUND'
+          code: 'RESOURCE_NOT_FOUND',
         });
       }
 
       // Check if user owns the resource or is admin
       if (resource.user_id !== req.profile.id && req.profile.role !== 'admin') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: `Access denied to ${resourceType}`,
-          code: 'RESOURCE_ACCESS_DENIED'
+          code: 'RESOURCE_ACCESS_DENIED',
         });
       }
 
       next();
     } catch (error) {
       console.error('Ownership check error:', error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Ownership verification error',
-        code: 'OWNERSHIP_CHECK_ERROR'
+        code: 'OWNERSHIP_CHECK_ERROR',
       });
     }
   };
@@ -198,14 +220,17 @@ async function optionalAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    
+
     if (!token) {
       return next(); // Continue without authentication
     }
 
     // Verify token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+
     if (error || !user) {
       return next(); // Continue without authentication
     }
@@ -224,7 +249,7 @@ async function optionalAuth(req, res, next) {
         id: user.id,
         email: profile.email,
         role: profile.role,
-        name: profile.name
+        name: profile.name,
       };
     }
 
@@ -236,6 +261,23 @@ async function optionalAuth(req, res, next) {
 }
 
 /**
+ * Clear rate limit cache for a specific IP or all IPs
+ */
+function clearAuthRateLimit(clientIP = null) {
+  if (!global.authAttempts) {
+    global.authAttempts = new Map();
+  }
+
+  if (clientIP) {
+    global.authAttempts.delete(clientIP);
+    console.log(`🧹 Cleared rate limit cache for IP: ${clientIP}`);
+  } else {
+    global.authAttempts.clear();
+    console.log('🧹 Cleared all rate limit cache');
+  }
+}
+
+/**
  * Rate limiting middleware for authentication endpoints
  */
 function authRateLimit(req, res, next) {
@@ -243,26 +285,28 @@ function authRateLimit(req, res, next) {
   const clientIP = req.ip || req.connection.remoteAddress;
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxAttempts = 5;
+  const maxAttempts = 20; // Increased from 5 to 20 for development
 
-  if (!req.app.locals.authAttempts) {
-    req.app.locals.authAttempts = new Map();
+  if (!global.authAttempts) {
+    global.authAttempts = new Map();
   }
 
-  const attempts = req.app.locals.authAttempts.get(clientIP) || [];
-  const recentAttempts = attempts.filter(timestamp => now - timestamp < windowMs);
+  const attempts = global.authAttempts.get(clientIP) || [];
+  const recentAttempts = attempts.filter(
+    (timestamp) => now - timestamp < windowMs
+  );
 
   if (recentAttempts.length >= maxAttempts) {
-    return res.status(429).json({ 
+    return res.status(429).json({
       error: 'Too many authentication attempts. Please try again later.',
       code: 'RATE_LIMIT_EXCEEDED',
-      retryAfter: Math.ceil((recentAttempts[0] + windowMs - now) / 1000)
+      retryAfter: Math.ceil((recentAttempts[0] + windowMs - now) / 1000),
     });
   }
 
   // Add current attempt
   recentAttempts.push(now);
-  req.app.locals.authAttempts.set(clientIP, recentAttempts);
+  global.authAttempts.set(clientIP, recentAttempts);
 
   next();
 }
@@ -272,8 +316,12 @@ function authRateLimit(req, res, next) {
  */
 function logAuthEvent(eventType) {
   return (req, res, next) => {
-    const userInfo = req.userInfo || { id: 'anonymous', email: 'anonymous', role: 'anonymous' };
-    
+    const userInfo = req.userInfo || {
+      id: 'anonymous',
+      email: 'anonymous',
+      role: 'anonymous',
+    };
+
     console.log(`🔐 Auth Event [${eventType}]:`, {
       timestamp: new Date().toISOString(),
       event: eventType,
@@ -283,7 +331,7 @@ function logAuthEvent(eventType) {
       ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent'),
       method: req.method,
-      path: req.path
+      path: req.path,
     });
 
     next();
@@ -297,9 +345,9 @@ function logAuthEvent(eventType) {
 async function validateSession(req, res, next) {
   try {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Session not found',
-        code: 'SESSION_NOT_FOUND'
+        code: 'SESSION_NOT_FOUND',
       });
     }
 
@@ -311,18 +359,18 @@ async function validateSession(req, res, next) {
       .single();
 
     if (error || !user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'User account not found or inactive',
-        code: 'USER_INACTIVE'
+        code: 'USER_INACTIVE',
       });
     }
 
     next();
   } catch (error) {
     console.error('Session validation error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Session validation error',
-      code: 'SESSION_VALIDATION_ERROR'
+      code: 'SESSION_VALIDATION_ERROR',
     });
   }
 }
@@ -337,6 +385,6 @@ module.exports = {
   optionalAuth,
   authRateLimit,
   logAuthEvent,
-  validateSession
+  validateSession,
+  clearAuthRateLimit,
 };
-

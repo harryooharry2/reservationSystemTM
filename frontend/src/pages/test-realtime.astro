@@ -1,0 +1,172 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Real-time Test - Cafe Reservation System">
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-3xl font-bold text-primary-400 mb-6">Real-time Connection Test</h1>
+      
+      <!-- Connection Status -->
+      <div class="bg-card rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-400 mb-4">Connection Status</h2>
+        <div id="connection-status" class="space-y-2">
+          <div class="flex items-center space-x-2">
+            <div id="status-indicator" class="w-3 h-3 rounded-full bg-gray-500"></div>
+            <span id="status-text" class="text-secondary-300">Connecting...</span>
+          </div>
+          <div class="text-sm text-secondary-400">
+            <span>Reconnect attempts: </span>
+            <span id="reconnect-attempts">0</span>
+          </div>
+          <div class="text-sm text-secondary-400">
+            <span>Active rooms: </span>
+            <span id="active-rooms">None</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Controls -->
+      <div class="bg-card rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-400 mb-4">Test Controls</h2>
+        <div class="space-y-4">
+          <div>
+            <button id="test-connection" class="btn-primary mr-2">
+              Test Connection
+            </button>
+            <button id="join-test-room" class="btn-secondary mr-2">
+              Join Test Room
+            </button>
+            <button id="leave-test-room" class="btn-secondary">
+              Leave Test Room
+            </button>
+          </div>
+          <div>
+            <button id="send-test-event" class="btn-primary">
+              Send Test Event
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="bg-card rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-primary-400 mb-4">Event Log</h2>
+        <div id="event-log" class="bg-secondary-800 rounded p-4 h-64 overflow-y-auto space-y-2">
+          <div class="text-secondary-400 text-sm">Waiting for events...</div>
+        </div>
+        <div class="mt-4">
+          <button id="clear-log" class="btn-secondary">
+            Clear Log
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import realtimeService from '../lib/realtime.js';
+
+  // DOM elements
+  const statusIndicator = document.getElementById('status-indicator');
+  const statusText = document.getElementById('status-text');
+  const reconnectAttempts = document.getElementById('reconnect-attempts');
+  const activeRooms = document.getElementById('active-rooms');
+  const eventLog = document.getElementById('event-log');
+
+  // Test buttons
+  const testConnectionBtn = document.getElementById('test-connection');
+  const joinTestRoomBtn = document.getElementById('join-test-room');
+  const leaveTestRoomBtn = document.getElementById('leave-test-room');
+  const sendTestEventBtn = document.getElementById('send-test-event');
+  const clearLogBtn = document.getElementById('clear-log');
+
+  // Log function
+  function logEvent(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.className = `text-sm ${type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-secondary-300'}`;
+    logEntry.textContent = `[${timestamp}] ${message}`;
+    eventLog.appendChild(logEntry);
+    eventLog.scrollTop = eventLog.scrollHeight;
+  }
+
+  // Update connection status
+  function updateConnectionStatus() {
+    const status = realtimeService.getConnectionStatus();
+    
+    if (status.isConnected) {
+      statusIndicator.className = 'w-3 h-3 rounded-full bg-green-500';
+      statusText.textContent = 'Connected';
+    } else {
+      statusIndicator.className = 'w-3 h-3 rounded-full bg-red-500';
+      statusText.textContent = 'Disconnected';
+    }
+    
+    reconnectAttempts.textContent = status.reconnectAttempts;
+    activeRooms.textContent = status.rooms.length > 0 ? status.rooms.join(', ') : 'None';
+  }
+
+  // Event listeners
+  realtimeService.on('connection:established', () => {
+    logEvent('Connection established', 'success');
+    updateConnectionStatus();
+  });
+
+  realtimeService.on('connection:lost', (data) => {
+    logEvent(`Connection lost: ${data.reason}`, 'error');
+    updateConnectionStatus();
+  });
+
+  realtimeService.on('connection:error', (data) => {
+    logEvent(`Connection error (attempt ${data.attempts})`, 'error');
+    updateConnectionStatus();
+  });
+
+  realtimeService.on('connection:reestablished', (data) => {
+    logEvent(`Reconnected after ${data.attempts} attempts`, 'success');
+    updateConnectionStatus();
+  });
+
+  realtimeService.on('connection:failed', () => {
+    logEvent('Failed to reconnect', 'error');
+    updateConnectionStatus();
+  });
+
+  // Test button handlers
+  testConnectionBtn.addEventListener('click', () => {
+    logEvent('Testing connection...');
+    realtimeService.sendHeartbeat();
+  });
+
+  joinTestRoomBtn.addEventListener('click', () => {
+    logEvent('Joining test room...');
+    realtimeService.joinRoom('test-room');
+    updateConnectionStatus();
+  });
+
+  leaveTestRoomBtn.addEventListener('click', () => {
+    logEvent('Leaving test room...');
+    realtimeService.leaveRoom('test-room');
+    updateConnectionStatus();
+  });
+
+  sendTestEventBtn.addEventListener('click', () => {
+    logEvent('Sending test event...');
+    realtimeService.emit('test-event', { message: 'Hello from client!', timestamp: Date.now() });
+  });
+
+  clearLogBtn.addEventListener('click', () => {
+    eventLog.innerHTML = '<div class="text-secondary-400 text-sm">Log cleared...</div>';
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    logEvent('Real-time test page loaded');
+    updateConnectionStatus();
+    
+    // Update status every second
+    setInterval(updateConnectionStatus, 1000);
+  });
+</script> 

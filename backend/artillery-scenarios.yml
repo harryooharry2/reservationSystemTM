@@ -1,0 +1,177 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 1
+      name: 'Warm-up'
+    - duration: 120
+      arrivalRate: 1
+      rampTo: 10
+      name: 'Ramp-up'
+    - duration: 300
+      arrivalRate: 10
+      name: 'Sustained load'
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: 'Peak load'
+    - duration: 180
+      arrivalRate: 50
+      name: 'Sustained peak'
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 1
+      name: 'Cool-down'
+
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      Accept: 'application/json'
+
+  processor: './artillery-functions.js'
+
+scenarios:
+  # Health check and monitoring endpoints
+  - name: 'Health and Monitoring'
+    weight: 10
+    flow:
+      - get:
+          url: '/api/monitoring/status'
+          expect:
+            - statusCode: 200
+            - contentType: json
+      - think: 1
+      - get:
+          url: '/api/health'
+          expect:
+            - statusCode: 200
+
+  # Authentication endpoints
+  - name: 'Authentication Flow'
+    weight: 20
+    flow:
+      - post:
+          url: '/api/auth/login'
+          json:
+            email: 'test@example.com'
+            password: 'testpassword'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+      - think: 2
+      - post:
+          url: '/api/auth/register'
+          json:
+            name: '{{ $randomString() }}'
+            email: '{{ $randomEmail() }}'
+            password: 'testpassword123'
+          expect:
+            - statusCode: [201, 400]
+            - contentType: json
+
+  # Reservation endpoints
+  - name: 'Reservation Management'
+    weight: 40
+    flow:
+      - get:
+          url: '/api/reservations'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+      - think: 1
+      - get:
+          url: '/api/reservations/{{ $randomInt(1, 100) }}'
+          expect:
+            - statusCode: [200, 404, 401]
+            - contentType: json
+      - think: 2
+      - post:
+          url: '/api/reservations'
+          json:
+            tableId: '{{ $randomInt(1, 20) }}'
+            date: '{{ $isoTimestamp() }}'
+            time: '19:00'
+            guests: '{{ $randomInt(1, 8) }}'
+            notes: 'Test reservation'
+          expect:
+            - statusCode: [201, 400, 401, 409]
+            - contentType: json
+
+  # Table management endpoints
+  - name: 'Table Management'
+    weight: 15
+    flow:
+      - get:
+          url: '/api/tables'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+      - think: 1
+      - get:
+          url: '/api/tables/{{ $randomInt(1, 20) }}'
+          expect:
+            - statusCode: [200, 404, 401]
+            - contentType: json
+      - think: 2
+      - get:
+          url: '/api/tables/availability?date={{ $isoTimestamp() }}'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+
+  # User management endpoints
+  - name: 'User Management'
+    weight: 10
+    flow:
+      - get:
+          url: '/api/users/profile'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+      - think: 1
+      - put:
+          url: '/api/users/profile'
+          json:
+            name: '{{ $randomString() }}'
+            phone: '{{ $randomPhoneNumber() }}'
+          expect:
+            - statusCode: [200, 400, 401]
+            - contentType: json
+
+  # Admin endpoints (higher weight for admin operations)
+  - name: 'Admin Operations'
+    weight: 5
+    flow:
+      - get:
+          url: '/api/admin/reservations'
+          expect:
+            - statusCode: [200, 401, 403]
+            - contentType: json
+      - think: 1
+      - get:
+          url: '/api/admin/analytics'
+          expect:
+            - statusCode: [200, 401, 403]
+            - contentType: json
+      - think: 2
+      - get:
+          url: '/api/admin/users'
+          expect:
+            - statusCode: [200, 401, 403]
+            - contentType: json
+
+  # Real-time WebSocket testing (simulated)
+  - name: 'Real-time Operations'
+    weight: 10
+    flow:
+      - get:
+          url: '/api/websocket/status'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json
+      - think: 1
+      - get:
+          url: '/api/realtime/connections'
+          expect:
+            - statusCode: [200, 401]
+            - contentType: json

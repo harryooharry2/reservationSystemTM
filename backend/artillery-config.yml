@@ -1,0 +1,59 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 1
+      name: 'Warm-up'
+
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 1
+      rampTo: 10
+      name: 'Ramp-up'
+
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 10
+      name: 'Sustained load'
+
+    # Peak load phase
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: 'Peak load'
+
+    # Sustained peak
+    - duration: 180
+      arrivalRate: 50
+      name: 'Sustained peak'
+
+    # Cool-down phase
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 1
+      name: 'Cool-down'
+
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      Accept: 'application/json'
+
+  processor: './artillery-functions.js'
+
+  # Output configuration
+  output: './test-results/artillery-report.json'
+
+  # HTTP configuration
+  http:
+    timeout: 30
+    pool: 10
+    maxSockets: 50
+
+  # Metrics configuration
+  metrics:
+    - http.response_time
+    - http.request_rate
+    - http.codes
+    - http.errors
+    - http.timeouts

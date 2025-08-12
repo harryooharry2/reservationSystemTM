@@ -1,9 +1,39 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const http = require('http');
+const cookieParser = require('cookie-parser');
+
+// Import security middleware
+const {
+  helmetConfig,
+  generalLimiter,
+  authLimiter,
+  reservationLimiter,
+  securityLogger,
+  corsOptions,
+} = require('./middleware/security');
+
+// Import security monitoring
+const { securityMonitoring } = require('./middleware/securityMonitoring');
+
+// Import performance monitoring
+const {
+  performanceMonitoring,
+  startMonitoring,
+} = require('./middleware/monitoring');
+
+// Import performance optimizations
+const {
+  compressionConfig,
+  responseCache,
+  optimizeResponse,
+  optimizeRequest,
+  memoryOptimization,
+  performanceTracking,
+  optimizeDatabaseQueries,
+  optimizeStaticAssets,
+} = require('./middleware/performance');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -12,6 +42,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const tablesRoutes = require('./routes/tables');
 const reservationsRoutes = require('./routes/reservations');
+const monitoringRoutes = require('./routes/monitoring');
 
 // Import Socket.IO manager
 const socketManager = require('./config/socket');
@@ -23,43 +54,31 @@ const PORT = process.env.PORT || 3000;
 // Initialize Socket.IO
 socketManager.initialize(server);
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+// Enhanced security middleware
+app.use(helmetConfig);
+app.use(cors(corsOptions));
+app.use(cookieParser());
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',')
-    : ['http://localhost:4321', 'http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+// Performance optimizations
+app.use(compressionConfig);
+app.use(optimizeResponse);
+app.use(optimizeRequest);
+app.use(memoryOptimization);
+app.use(performanceTracking);
+app.use(optimizeDatabaseQueries);
+app.use(optimizeStaticAssets);
 
-// Rate limiting for API endpoints
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.',
-    code: 'RATE_LIMIT_EXCEEDED',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Security logging and monitoring
+app.use(securityLogger);
+app.use(securityMonitoring);
 
-// Apply rate limiting to all API routes
-app.use('/api', apiLimiter);
+// Performance monitoring
+app.use(performanceMonitoring);
+
+// Rate limiting - apply different limits to different endpoints
+app.use('/api/auth', authLimiter); // Stricter for auth endpoints
+app.use('/api/reservations', reservationLimiter); // Moderate for reservations
+app.use('/api', generalLimiter); // General rate limiting for all other API routes
 
 // Logging middleware
 if (process.env.NODE_ENV !== 'test') {
@@ -72,12 +91,24 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip}`);
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip}`
+  );
   next();
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+  });
+});
+
+// Detailed health check endpoint with caching
+app.get('/api/health', responseCache(60), (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -148,6 +179,20 @@ app.get('/api', (req, res) => {
         delete: 'DELETE /api/reservations/:id',
         status: 'PATCH /api/reservations/:id/status (staff/admin)',
       },
+      admin: {
+        dashboard: 'GET /api/admin/dashboard (staff/admin)',
+        reservations: 'GET /api/admin/reservations (staff/admin)',
+        updateReservation: 'PUT /api/admin/reservations/:id (staff/admin)',
+        cancelReservation: 'DELETE /api/admin/reservations/:id (staff/admin)',
+        tables: 'GET /api/admin/tables (staff/admin)',
+        updateTable: 'PUT /api/admin/tables/:id (staff/admin)',
+        createTable: 'POST /api/admin/tables (staff/admin)',
+        customers: 'GET /api/admin/customers (staff/admin)',
+        reports: 'GET /api/admin/reports (staff/admin)',
+        analytics: 'GET /api/admin/analytics (staff/admin)',
+        settings: 'GET /api/admin/settings (admin only)',
+        updateSettings: 'PUT /api/admin/settings (admin only)',
+      },
     },
     businessRules: {
       hours: '8:00 AM - 10:00 PM',
@@ -173,6 +218,8 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tables', tablesRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/admin', require('./routes/admin'));
 
 // 404 handler for unmatched API routes
 app.use('/api/*', notFoundHandler);
@@ -183,23 +230,25 @@ app.use(errorHandler);
 // Graceful shutdown handling
 const gracefulShutdown = (signal) => {
   console.log(`\n${signal} received, shutting down gracefully`);
-  
+
   // Close Socket.IO server
   if (socketManager.io) {
     socketManager.io.close(() => {
       console.log('Socket.IO server closed');
     });
   }
-  
+
   // Close HTTP server
   server.close(() => {
     console.log('HTTP server closed');
     process.exit(0);
   });
-  
+
   // Force close after 10 seconds
   setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
+    console.error(
+      'Could not close connections in time, forcefully shutting down'
+    );
     process.exit(1);
   }, 10000);
 };
@@ -223,7 +272,8 @@ process.on('unhandledRejection', (reason, promise) => {
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📈 Monitoring: http://localhost:${PORT}/api/monitoring/status`);
   console.log(
     `🔌 Socket.IO status: http://localhost:${PORT}/api/socket-status`
   );
@@ -232,7 +282,12 @@ server.listen(PORT, () => {
   console.log(`🔒 Security: Rate limiting, CORS, and Helmet enabled`);
   console.log(`📝 Logging: Morgan HTTP request logging enabled`);
   console.log(`⚡ Real-time: Socket.IO server initialized`);
-  console.log(`✅ Business Logic: Comprehensive validation and error handling active`);
+  console.log(
+    `✅ Business Logic: Comprehensive validation and error handling active`
+  );
+
+  // Start monitoring system
+  startMonitoring();
 });
 
 module.exports = { app, server };

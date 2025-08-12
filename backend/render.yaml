@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: cafe-reservation-api
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://your-frontend-domain.netlify.app
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: '900000'
+      - key: RATE_LIMIT_MAX_AUTH
+        value: '5'
+      - key: RATE_LIMIT_MAX_RESERVATIONS
+        value: '20'
+      - key: RATE_LIMIT_MAX_GENERAL
+        value: '100'
+    autoDeploy: true
+    branch: main
